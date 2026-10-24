@@ -5,7 +5,7 @@
 <title>Kite Reports · P&amp;L Observatory</title>
 <meta name="description" content="A browser-based dashboard for reviewing Zerodha Kite P&L Excel reports.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
 <style>
 :root{--bg:#f4f6fa;--ink:#17243a;--muted:#7f8ba0;--line:#e5eaf1;--card:#fff;--nav:#101a2b;--green:#087f5b;--red:#d9485f;--gold:#ce9b45;--blue:#4e79d9;--shadow:0 10px 30px rgba(20,40,70,.055)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}button,input,select{font:inherit}button{cursor:pointer}
@@ -58,7 +58,7 @@ main{min-width:0;padding:29px clamp(18px,3.2vw,48px) 40px}.topline{display:flex;
 "use strict";
 const OWNER="SuhasVJ",REPO="kite-reports",BRANCH="main";
 const API="https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/reports?ref="+BRANCH;
-const RAW="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/";
+const PAGES_REPORTS=new URL("./reports/",window.location.href).href;
 let reports=[],lastRefresh=null;
 const $=id=>document.getElementById(id);
 const fmt=n=>Number.isFinite(n)?new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:2}).format(n):"—";
@@ -82,8 +82,18 @@ const date=findColumn(headers,[/^trade date$/,/^date$/,/^order date$/,/^exit dat
 const symbol=findColumn(headers,[/^tradingsymbol$/,/^trading symbol$/,/^symbol$/,/^instrument$/,/^stock$/]);
 return{pnl,gross,chargeCols,date,symbol};
 }
+function ensureXlsx(){
+if(window.XLSX)return Promise.resolve();
+return new Promise((resolve,reject)=>{
+const urls=["https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js","https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"];
+let i=0;
+const next=()=>{if(window.XLSX){resolve();return;}if(i>=urls.length){reject(new Error("Could not load the Excel parser from either CDN. Check network access, ad blockers, or browser extensions."));return;}
+const s=document.createElement("script");s.src=urls[i++];s.crossOrigin="anonymous";s.onload=()=>window.XLSX?resolve():next();s.onerror=next;document.head.appendChild(s);};
+next();
+});
+}
 function parseWorkbook(buf,name,source,url){
-if(!window.XLSX)throw new Error("Excel parser failed to load; check network access to the xlsx library.");
+if(!window.XLSX)throw new Error("Excel parser failed to load; refresh the page or check CDN/network blocking.");
 const wb=XLSX.read(buf,{type:"array",cellDates:true});let best=null;
 for(const sheetName of wb.SheetNames){const ws=wb.Sheets[sheetName],rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});if(!rows.length)continue;
 for(let r=0;r<Math.min(rows.length,20);r++){const row=rows[r]||[],headers=row.map(v=>String(v??"").trim()),cols=detectColumns(headers),dataCount=rows.slice(r+1).filter(x=>x&&x.some(v=>v!==null&&v!=="")).length,score=(cols.pnl>=0?6:0)+(cols.gross>=0?4:0)+(cols.chargeCols.length?2:0)+(cols.symbol>=0?1:0)+(cols.date>=0?1:0)+Math.min(dataCount/100,1);if(!best||score>best.score)best={sheetName,rows,headerRow:r,headers,cols,score};}}
@@ -98,13 +108,18 @@ const dates=body.map(r=>cols.date>=0?r[cols.date]:null).filter(Boolean).map(v=>v
 return{name,title:titleFrom(name),source,url,worksheet:best.sheetName,tradeRows:body.length,gross,charges:cols.chargeCols.length?chargeTotal:null,net,ready,note:ready?(cols.chargeCols.length?"P&L and charges detected":"P&L detected; charges not found"):"No recognizable P&L header",dateRange:dates.length?dates[0]+(dates[dates.length-1]!==dates[0]?" – "+dates[dates.length-1]:""):"",headers,rows:[],chargeNames:cols.chargeCols.map(c=>c.name),pnlColumn:cols.pnl>=0?headers[cols.pnl]:cols.gross>=0?headers[cols.gross]:""};
 }
 async function loadGitHub(){
-setStatus("Refreshing workbook list from GitHub…","loading");
+setStatus("Loading Excel parser and refreshing GitHub report list…","loading");
 try{
-const res=await fetch(API,{headers:{"Accept":"application/vnd.github+json"}});if(!res.ok)throw new Error(res.status===403?"GitHub API rate limit reached; wait and refresh.":"GitHub returned HTTP "+res.status);
+await ensureXlsx();
+const res=await fetch(API,{headers:{"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"}});if(!res.ok)throw new Error(res.status===403?"GitHub API rate limit reached; wait and refresh.":"GitHub returned HTTP "+res.status);
 const files=await res.json(),xfiles=files.filter(f=>f.type==="file"&&/\.(xlsx|xls|csv)$/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
 if(!xfiles.length)throw new Error("No .xlsx, .xls or .csv files found inside reports/.");
 const cached=new Map(reports.filter(r=>r.source==="Local upload").map(r=>[r.name,r])),loaded=[],failures=[];
-for(let i=0;i<xfiles.length;i+=4){const batch=xfiles.slice(i,i+4);const result=await Promise.all(batch.map(async f=>{try{const raw=await fetch(RAW+f.path.split("/").map(encodeURIComponent).join("/"));if(!raw.ok)throw new Error("download failed ("+raw.status+")");return parseWorkbook(await raw.arrayBuffer(),f.name,"GitHub",f.html_url);}catch(e){failures.push(f.name+": "+e.message);return{name:f.name,title:titleFrom(f.name),source:"GitHub",url:f.html_url,worksheet:"—",tradeRows:0,gross:null,charges:null,net:null,ready:false,note:"Could not parse: "+e.message,headers:[],rows:[]};}}));loaded.push(...result);}
+for(let i=0;i<xfiles.length;i+=4){const batch=xfiles.slice(i,i+4);const result=await Promise.all(batch.map(async f=>{try{const relativePath=f.path.replace(/^reports\//,"").split("/").map(encodeURIComponent).join("/");
+let raw=await fetch(PAGES_REPORTS+relativePath,{cache:"no-store"});
+if(!raw.ok&&f.download_url)raw=await fetch(f.download_url,{cache:"no-store"});
+if(!raw.ok)throw new Error("workbook download failed ("+raw.status+")");
+return parseWorkbook(await raw.arrayBuffer(),f.name,"GitHub",f.html_url);}catch(e){failures.push(f.name+": "+e.message);return{name:f.name,title:titleFrom(f.name),source:"GitHub",url:f.html_url,worksheet:"—",tradeRows:0,gross:null,charges:null,net:null,ready:false,note:"Could not parse: "+e.message,headers:[],rows:[]};}}));loaded.push(...result);}
 reports=[...loaded,...cached.values()];lastRefresh=new Date();renderAll();
 setStatus("Loaded "+loaded.length+" repository report(s)"+(cached.size?" + "+cached.size+" local file(s)":"")+" · updated "+lastRefresh.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),failures.length?"error":"ok");
 if(failures.length)toast(failures.length+" report(s) could not be read; check their status in the table.");
