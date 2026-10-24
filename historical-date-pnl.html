@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Same Day Historical P&amp;L | Kite Reports</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#19263d;--muted:#7b8aa4;--line:#dfe6f0;--blue:#2365c8;--green:#148363;--red:#d34e60;--shadow:0 12px 32px rgba(22,42,75,.06}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1440px;margin:auto;padding:24px 22px 50px}.head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px}h1{font-size:clamp(29px,4vw,42px);letter-spacing:-1.3px;line-height:1.1;margin:8px 0}.muted{color:var(--muted)}.eyebrow{text-transform:uppercase;letter-spacing:1.7px;font-size:11px;color:var(--muted)}.btn{display:inline-block;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);padding:10px 14px;text-decoration:none;font-weight:700;cursor:pointer}.btn.primary{background:var(--ink);color:white;border-color:var(--ink)}.controls,.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);min-width:0}.field label{display:block;color:var(--muted);font-size:12px;font-weight:700;margin-bottom:6px}.field input,.field select{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;padding:11px;background:#fff;color:var(--ink);font:inherit}.field .hint{font-size:11px;color:var(--muted);margin-top:5px}.kpi-label{font-size:12px;color:var(--muted)}.kpi{font-size:clamp(22px,3vw,31px);font-weight:800;letter-spacing:-.8px;margin:7px 0;overflow-wrap:anywhere}.positive{color:var(--green)}.negative{color:var(--red)}.section{margin-top:16px}.section h2{font-size:20px;margin:0 0 10px;letter-spacing:-.4px}.status{padding:12px 14px;border-radius:10px;background:#edf3ff;color:#315b9b;font-size:13px;margin:14px 0}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:13px;background:#fff}table{border-collapse:collapse;width:100%;min-width:950px;font-size:13px}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);white-space:nowrap}th{background:#f8faff;color:var(--muted);font-size:11px;letter-spacing:.6px;text-transform:uppercase;position:sticky;top:0}td.num{text-align:right;font-variant-numeric:tabular-nums}.empty{text-align:center;padding:36px 12px;color:var(--muted)}.note{font-size:12px;color:var(--muted);margin-top:12px}.tag{display:inline-block;border-radius:7px;padding:3px 7px;background:#edf3ff;color:#315b9b;font-size:11px;font-weight:700}.search{max-width:320px;width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font:inherit}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.foot{font-size:12px;color:var(--muted);margin-top:20px}@media(max-width:800px){main{padding:18px 12px 35px}.controls{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:14px}}@media(max-width:420px){.controls{grid-template-columns:1fr 1fr}.kpis{gap:8px}.kpi{font-size:21px}}
+</style></head><body><main>
+<div class="head"><div><div class="eyebrow">Kite Reports / Historical comparison</div><h1>Same-day P&amp;L across years</h1><p class="muted">Find trade rows executed on the same calendar day and month in previous years across all reports in your repository.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="./index.html">← Main dashboard</a><button class="btn" id="exportBtn">Export CSV</button></div></div>
+<section class="card controls">
+<div class="field"><label for="datePick">Calendar date</label><input type="date" id="datePick"><div class="hint">Matches the same day and month across years</div></div>
+<div class="field"><label for="yearsBack">Previous years to scan</label><select id="yearsBack"><option value="3">Previous 3 years</option><option value="5" selected>Previous 5 years</option><option value="10">Previous 10 years</option><option value="all">All available previous years</option></select></div>
+<div class="field"><label for="segment">Segment</label><select id="segment"><option value="">All segments</option><option>Equity</option><option>F&amp;O</option><option>Currency</option><option>Commodity</option></select></div>
+<div class="field"><label for="search">Symbol / report search</label><input id="search" type="search" placeholder="e.g. NIFTY, RELIANCE"></div>
+</section>
+<div class="status" id="status">Loading reports from GitHub…</div>
+<section class="kpis section">
+<div class="card"><div class="kpi-label">Matching trades</div><div class="kpi" id="tradeCount">—</div><div class="muted" id="yearsCount">Across historical years</div></div>
+<div class="card"><div class="kpi-label">P&amp;L total</div><div class="kpi" id="pnlTotal">—</div><div class="muted">Sum of detected P&amp;L column values</div></div>
+<div class="card"><div class="kpi-label">Charges total</div><div class="kpi" id="chargeTotal">—</div><div class="muted">Only where report has charge columns</div></div>
+<div class="card"><div class="kpi-label">P&amp;L after charges (estimate)</div><div class="kpi" id="netTotal">—</div><div class="muted">P&amp;L less detected charges when P&amp;L is gross</div></div>
+</section>
+<section class="section card"><div class="section-head"><div><h2>Historical trade details</h2><div class="muted" id="subheading">Rows from all recognized report workbooks</div></div><button class="btn" id="reloadBtn">Reload reports</button></div>
+<div class="table-wrap"><table><thead><tr><th>Trade date</th><th>Year</th><th>Segment</th><th>Symbol / instrument</th><th>Trade / description</th><th>Gross / P&amp;L</th><th>Charges</th><th>Net P&amp;L</th><th>Source report</th><th>Worksheet</th></tr></thead><tbody id="tbody"><tr><td colspan="10" class="empty">Loading…</td></tr></tbody></table></div>
+<div class="note">This page searches transaction-level rows where a recognizable trade date and P&amp;L column exist. Summary-only workbooks may not contain individual trade dates. Overlapping reports can include duplicate trades; results are not automatically deduplicated. A reported net P&amp;L column is shown as-is; if only gross P&amp;L is present, net is estimated by subtracting detected charges.</div></section>
+<div class="foot">Data source: Excel/CSV files in the public GitHub repository reports/ folder. All calculations run in your browser.</div>
+</main>
+<script>
+const OWNER="SuhasVJ",REPO="kite-reports",BRANCH="main";
+const API="https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/reports?ref="+BRANCH;
+const REPORTS_URL=new URL("./reports/",location.href).href;
+const $=id=>document.getElementById(id);
+let allTrades=[],fileCount=0,failures=[];
+const fmt=n=>Number.isFinite(n)?new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:2}).format(n):"—";
+const num=v=>{if(typeof v==="number"&&Number.isFinite(v))return v;if(v==null||v==="")return null;if(typeof v==="string"){let s=v.trim().replace(/[₹,\s]/g,"");if(/^\(.*\)$/.test(s))s="-"+s.slice(1,-1);if(s.endsWith("%"))return null;const n=Number(s);return s&&Number.isFinite(n)?n:null;}return null;};
+const norm=s=>String(s??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const title=s=>s.replace(/\.[^.]+$/,"");
+function loadXlsx(){return new Promise((resolve,reject)=>{if(window.XLSX)return resolve();let urls=["https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js","https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"],i=0;function next(){if(window.XLSX)return resolve();if(i>=urls.length)return reject(new Error("Excel parser failed to load. Check network/CDN access."));let s=document.createElement("script");s.src=urls[i++];s.onload=()=>window.XLSX?resolve():next();s.onerror=next;document.head.appendChild(s);}next();});}
+function col(headers,patterns){for(const p of patterns){const i=headers.findIndex(h=>p.test(norm(h)));if(i>=0)return i;}return -1;}
+function detect(headers){
+ const pnl=col(headers,[/^(net )?p ?l$/,/^net profit loss$/,/^realised p ?l$/,/^realized p ?l$/,/^pnl$/,/^profit loss$/,/net p ?l/,/profit loss/]);
+ const gross=col(headers,[/^gross p ?l$/,/^gross profit loss$/,/gross p ?l/]);
+ const total=col(headers,[/^total charges?$/,/^total charges taxes$/,/^charges$/,/^charges taxes$/]);
+ const chargeCols=[];
+ if(total>=0)chargeCols.push(total);else for(const p of [/^brokerage$/,/^(stt|securities transaction tax)$/,/^(exchange charges?|transaction charges?)$/,/^(gst|goods and services tax)$/,/^sebi charges?$/,/^stamp duty$/,/^ipft$/,/^(other charges?|clearing charges?)$/]){const i=headers.findIndex(h=>p.test(norm(h)));if(i>=0&&!chargeCols.includes(i))chargeCols.push(i);}
+ const date=col(headers,[/^trade date$/,/^date$/,/^order date$/,/^exit date$/,/^timestamp$/,/^trade timestamp$/]);
+ const symbol=col(headers,[/^tradingsymbol$/,/^trading symbol$/,/^symbol$/,/^instrument$/,/^stock$/,/^instrument name$/]);
+ const desc=col(headers,[/^trade type$/,/^transaction type$/,/^type$/,/^description$/,/^product$/,/^tradetype$/]);
+ const segment=col(headers,[/^segment$/,/^exchange$/,/^market$/]);
+ return{pnl,gross,total,chargeCols,date,symbol,desc,segment};
+}
+function toDate(v){
+ if(v instanceof Date&&!isNaN(v))return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+ if(typeof v==="number"&&window.XLSX&&XLSX.SSF){const d=XLSX.SSF.parse_date_code(v);if(d&&d.y)return new Date(d.y,d.m-1,d.d);}
+ const s=String(v??"").trim();if(!s)return null;
+ let m=s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+ m=s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);if(m){let a=+m[1],b=+m[2],y=+m[3];if(a>12)return new Date(y,b-1,a);return new Date(y,a-1,b);}
+ const d=new Date(s);return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
+}
+function classify(file,sheet,segment){const s=norm([file,sheet,segment].join(" "));if(/commodity|mcx/.test(s))return"Commodity";if(/currency|cds/.test(s))return"Currency";if(/f o|futures and options|derivative|nifty|banknifty|option|future/.test(s))return"F&O";if(/equity|nse|bse/.test(s))return"Equity";return segment||"Other";}
+async function scanFile(f){
+ const rel=f.path.replace(/^reports\//,"").split("/").map(encodeURIComponent).join("/");
+ let res=await fetch(REPORTS_URL+rel,{cache:"no-store"});if(!res.ok&&f.download_url)res=await fetch(f.download_url);if(!res.ok)throw new Error("Download failed: "+res.status);
+ const wb=XLSX.read(await res.arrayBuffer(),{type:"array",cellDates:true}),rowsOut=[];
+ for(const sheetName of wb.SheetNames){
+  const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,raw:true,defval:null,blankrows:false});
+  for(let hr=0;hr<Math.min(rows.length,150);hr++){
+   const headers=(rows[hr]||[]).map(v=>String(v??"").trim()),c=detect(headers);
+   if(c.date<0||(c.pnl<0&&c.gross<0))continue;
+   let foundBody=false;
+   for(let ri=hr+1;ri<rows.length;ri++){
+    const row=rows[ri]||[],date=toDate(row[c.date]);if(!date)continue;
+    const pnl=num(row[c.pnl]),gross=num(row[c.gross]);if(pnl===null&&gross===null)continue;
+    foundBody=true;let charges=null;
+    if(c.chargeCols.length){let sum=0,any=false;for(const ci of c.chargeCols){const x=num(row[ci]);if(x!==null){sum+=x;any=true;}}if(any)charges=sum;}
+    const rawSegment=c.segment>=0?row[c.segment]:"";
+    const seg=classify(f.name,sheetName,rawSegment);
+    const net=pnl!==null?pnl:(gross!==null&&charges!==null?gross-charges:gross);
+    rowsOut.push({date:date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0"),year:date.getFullYear(),segment:seg,symbol:c.symbol>=0?String(row[c.symbol]??"—"):"—",description:c.desc>=0?String(row[c.desc]??"—"):"—",gross:gross!==null?gross:pnl,charges,net,report:f.name,sheet:sheetName,url:f.html_url});
+   }
+   if(foundBody)break;
+  }
+ }
+ return rowsOut;
+}
+function render(){
+ const pick=$("datePick").value;if(!pick)return;
+ const d=new Date(pick+"T12:00:00"),month=d.getMonth(),day=d.getDate(),current=d.getFullYear(),range=$("yearsBack").value;
+ const minYear=range==="all"?-Infinity:current-Number(range);
+ const search=norm($("search").value),segment=$("segment").value;
+ const rows=allTrades.filter(t=>{const parts=t.date.split("-").map(Number),dateMatch=parts[1]-1===month&&parts[2]===day&&t.year<current&&t.year>=minYear;return dateMatch&&(!segment||t.segment===segment)&&(!search||norm(t.symbol+" "+t.description+" "+t.report+" "+t.sheet).includes(search));}).sort((a,b)=>b.date.localeCompare(a.date)||a.symbol.localeCompare(b.symbol));
+ const sumP=rows.reduce((s,r)=>s+(Number.isFinite(r.gross)?r.gross:0),0),chargeRows=rows.filter(r=>Number.isFinite(r.charges)),sumC=chargeRows.reduce((s,r)=>s+r.charges,0),sumN=rows.reduce((s,r)=>s+(Number.isFinite(r.net)?r.net:0),0);
+ $("tradeCount").textContent=rows.length.toLocaleString("en-IN");$("yearsCount").textContent=new Set(rows.map(r=>r.year)).size+" historical year(s) matched";$("pnlTotal").textContent=fmt(sumP);$("pnlTotal").className="kpi "+(sumP>0?"positive":sumP<0?"negative":"");$("chargeTotal").textContent=chargeRows.length?fmt(sumC):"—";$("netTotal").textContent=fmt(sumN);$("netTotal").className="kpi "+(sumN>0?"positive":sumN<0?"negative":"");$("subheading").textContent="Same calendar day across previous years · "+rows.length+" matching trade row(s) · "+fileCount+" report(s) scanned";
+ $("tbody").innerHTML=rows.length?rows.map(r=>'<tr><td>'+esc(r.date)+'</td><td>'+r.year+'</td><td><span class="tag">'+esc(r.segment)+'</span></td><td>'+esc(r.symbol)+'</td><td>'+esc(r.description)+'</td><td class="num '+(r.gross>0?"positive":r.gross<0?"negative":"")+'">'+fmt(r.gross)+'</td><td class="num">'+fmt(r.charges)+'</td><td class="num '+(r.net>0?"positive":r.net<0?"negative":"")+'">'+fmt(r.net)+'</td><td>'+esc(r.report)+'</td><td>'+esc(r.sheet)+'</td></tr>').join(""):'<tr><td colspan="10" class="empty">No matching trade rows found for this calendar date in the available previous-year reports.</td></tr>';
+}
+async function loadReports(){
+ $("status").textContent="Loading Excel parser and listing reports…";$("tbody").innerHTML='<tr><td colspan="10" class="empty">Loading reports…</td></tr>';
+ try{await loadXlsx();const res=await fetch(API,{headers:{"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"}});if(!res.ok)throw new Error("GitHub API returned HTTP "+res.status);const files=(await res.json()).filter(f=>f.type==="file"&&/\.(xlsx|xls|csv)$/i.test(f.name));fileCount=files.length;allTrades=[];failures=[];let completed=0;
+  for(let i=0;i<files.length;i+=3){const batch=files.slice(i,i+3);const results=await Promise.all(batch.map(async f=>{try{return await scanFile(f)}catch(e){failures.push(f.name+": "+e.message);return[]}}));for(const arr of results)allTrades.push(...arr);completed+=batch.length;$("status").textContent="Scanned "+completed+" / "+files.length+" report(s)…";}
+  $("status").textContent="Loaded "+files.length+" report(s), found "+allTrades.length+" trade row(s) with recognizable dates and P&L columns."+(failures.length?" "+failures.length+" file(s) could not be read.":"");render();
+ }catch(e){$("status").textContent="Could not load reports: "+e.message;$("tbody").innerHTML='<tr><td colspan="10" class="empty">'+esc(e.message)+'</td></tr>';}
+}
+function exportCsv(){const pick=$("datePick").value,d=new Date(pick+"T12:00:00"),month=d.getMonth(),day=d.getDate(),current=d.getFullYear(),range=$("yearsBack").value,minYear=range==="all"?-Infinity:current-Number(range),search=norm($("search").value),segment=$("segment").value;const rows=allTrades.filter(t=>{const p=t.date.split("-").map(Number);return p[1]-1===month&&p[2]===day&&t.year<current&&t.year>=minYear&&(!segment||t.segment===segment)&&(!search||norm(t.symbol+" "+t.description+" "+t.report+" "+t.sheet).includes(search));});const data=[["Date","Year","Segment","Symbol","Description","Gross/P&L INR","Charges INR","Net P&L INR","Report","Worksheet"],...rows.map(r=>[r.date,r.year,r.segment,r.symbol,r.description,r.gross,r.charges,r.net,r.report,r.sheet])];const csv="\ufeff"+data.map(row=>row.map(v=>{const s=String(v??"");return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));a.download="same-day-historical-pnl-"+pick+".csv";a.click();URL.revokeObjectURL(a.href);}
+function todayISO(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+$("datePick").value=todayISO();["datePick","yearsBack","segment","search"].forEach(id=>$(id).addEventListener("input",render));$("reloadBtn").addEventListener("click",loadReports);$("exportBtn").addEventListener("click",exportCsv);loadReports();
+</script></body></html>
