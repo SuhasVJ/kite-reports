@@ -11,13 +11,24 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}button,input,select{font:inherit}button{cursor:pointer}
 .shell{display:block;min-height:100vh}main{min-width:0;padding:29px clamp(18px,3.2vw,48px) 40px}.topline{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:30px}.eyebrow{color:var(--muted);font-size:11px;letter-spacing:1.3px;text-transform:uppercase;margin-bottom:7px}.page-title{font:800 clamp(25px,3vw,34px)/1.15 Manrope,sans-serif;letter-spacing:-1.2px;margin:0}.page-sub{font-size:13px;color:var(--muted);margin-top:8px}.top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;flex-shrink:0}.btn{border:1px solid var(--line);background:white;border-radius:9px;padding:10px 13px;font-size:12px;font-weight:700;color:var(--ink);box-shadow:0 2px 5px #18294305}.btn.primary{background:#18283f;color:#fff;border-color:#18283f}.btn:hover{transform:translateY(-1px)}
 .status{display:flex;gap:9px;align-items:center;font-size:11px;color:var(--muted);margin:-15px 0 22px}.dot{width:7px;height:7px;border-radius:50%;background:#12a878;display:inline-block}.status.error .dot{background:var(--red)}.status.loading .dot{background:var(--gold)}
-.grid-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:17px}.kpi{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);padding:19px;border-radius:15px;min-width:0}.kpi-head{font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:8px}.kpi-icon{width:27px;height:27px;background:#f2f5fa;border-radius:8px;display:grid;place-items:center;font-size:13px}.kpi-value{font:800 clamp(19px,2.3vw,27px)/1.2 Manrope,sans-serif;margin-top:15px;letter-spacing:-.8px;overflow-wrap:anywhere}.kpi-foot{font-size:11px;color:var(--muted);margin-top:8px}.positive{color:var(--green)!important}.negative{color:var(--red)!important}.neutral{color:var(--ink)!important}
+.grid-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:17px}
+.segment-section{margin:22px 0 25px}
+.segment-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px}
+.segment-title{font:800 19px Manrope,sans-serif;letter-spacing:-.4px;margin:0}
+.segment-subtitle{font-size:11px;color:var(--muted);margin-top:5px}
+.segment-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.segment-card{position:relative;overflow:hidden;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:21px 22px 18px;display:flex;flex-direction:column;gap:10px}
+.segment-card:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:#2365c8;opacity:.78}
+.segment-name{font:600 15px Manrope,sans-serif;color:#33445d}
+.segment-value{font:700 clamp(18px,2vw,27px)/1.15 Manrope,sans-serif;letter-spacing:-.45px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.segment-meta{color:var(--muted);font-size:10px;line-height:1.5}
+.kpi{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);padding:19px;border-radius:15px;min-width:0}.kpi-head{font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:8px}.kpi-icon{width:27px;height:27px;background:#f2f5fa;border-radius:8px;display:grid;place-items:center;font-size:13px}.kpi-value{font:800 clamp(19px,2.3vw,27px)/1.2 Manrope,sans-serif;margin-top:15px;letter-spacing:-.8px;overflow-wrap:anywhere}.kpi-foot{font-size:11px;color:var(--muted);margin-top:8px}.positive{color:var(--green)!important}.negative{color:var(--red)!important}.neutral{color:var(--ink)!important}
 .columns{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:17px}.panel{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:15px;padding:21px;min-width:0}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:17px}.panel-title{font:700 15px Manrope,sans-serif;margin:0}.panel-sub{font-size:11px;color:var(--muted);margin-top:5px}.tag{font-size:10px;color:#7b879a;background:#f2f5f9;border-radius:6px;padding:6px 8px;white-space:nowrap}
 .chart{width:100%;height:clamp(210px,28vw,300px);display:block;overflow:visible}.chart text{font-family:"DM Sans",sans-serif;fill:#8a96a8;font-size:10px}.legend{display:flex;flex-wrap:wrap;gap:15px;font-size:11px;color:var(--muted);margin-top:9px}.legend span{display:flex;align-items:center;gap:6px}.swatch{width:7px;height:7px;border-radius:50%;display:inline-block}
 .section-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:23px 0 13px}.section-title{font:800 19px Manrope,sans-serif;letter-spacing:-.4px;margin:0}.section-help{font-size:11px;color:var(--muted);margin-top:4px}.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.control{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:white;color:#536176;font-size:11px;outline:none;max-width:100%}.control:focus{border-color:#9eb4db}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:13px;background:white;box-shadow:var(--shadow)}table{border-collapse:collapse;width:100%;min-width:760px;font-size:12px}thead{background:#f8f9fc}th{font-size:10px;text-transform:uppercase;letter-spacing:.9px;font-weight:700;color:#8a96a8;text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);white-space:nowrap}td{padding:15px 16px;border-bottom:1px solid #eff2f6;white-space:nowrap}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:#fbfcff}.num{text-align:right;font-family:"DM Mono",monospace;font-size:11px}.report-name{font-weight:700;color:#25364e}.report-meta{color:#98a2b3;font-size:10px;margin-top:4px}.pill{font-size:10px;padding:5px 7px;border-radius:6px;background:#edf8f3;color:#188461}.pill.warn{background:#fff6e8;color:#9b6b22}.open-link{color:#3d69b5;text-decoration:none;font-weight:700;font-size:11px}.empty{padding:35px;text-align:center;color:var(--muted);font-size:12px}.empty b{display:block;color:var(--ink);font-size:14px;margin-bottom:7px}.footnote{font-size:10px;color:#9aa4b4;margin-top:15px;line-height:1.6}
 .toast{position:fixed;right:20px;bottom:20px;background:#18283f;color:white;padding:12px 16px;border-radius:10px;font-size:12px;box-shadow:0 10px 30px #0c172b30;display:none;max-width:min(420px,calc(100vw - 40px));z-index:5}.toast.show{display:block}.disclaimer{background:#fff9ed;border:1px solid #f4e4c4;border-radius:10px;padding:12px 14px;color:#7a653c;font-size:11px;line-height:1.6;margin-top:17px}
-@media(max-width:1100px){.grid-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:720px){.shell{display:block}main{padding:22px 14px 32px}.topline{align-items:flex-start;flex-direction:column;margin-bottom:24px}.top-actions{width:100%}.top-actions .btn{flex:1}.grid-kpi{gap:10px}.kpi{padding:14px}.kpi-value{font-size:20px}.panel{padding:16px}.split-row{grid-template-columns:78px 1fr 78px}.chart{height:195px}.section-row{align-items:flex-start}.filters{width:100%}.filters .btn{flex-shrink:0}.control{flex:1;min-width:120px}}
+@media(max-width:1100px){.grid-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}.segment-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:720px){.shell{display:block}main{padding:22px 14px 32px}.topline{align-items:flex-start;flex-direction:column;margin-bottom:24px}.top-actions{width:100%}.top-actions .btn{flex:1}.grid-kpi{gap:10px}.segment-grid{gap:10px}.segment-card{padding:15px 14px 17px}.segment-value{font-size:clamp(17px,4.6vw,23px)}.kpi{padding:14px}.kpi-value{font-size:20px}.panel{padding:16px}.split-row{grid-template-columns:78px 1fr 78px}.chart{height:195px}.section-row{align-items:flex-start}.filters{width:100%}.filters .btn{flex-shrink:0}.control{flex:1;min-width:120px}}
 </style>
 </head>
 <body>
@@ -30,6 +41,22 @@
 <article class="kpi"><div class="kpi-head">Est. after charges · report sum <span class="kpi-icon">◈</span></div><div class="kpi-value neutral" id="net-value">—</div><div class="kpi-foot" id="net-foot">Estimate: P&amp;L − charges + signed other credits/debits</div></article>
 <article class="kpi"><div class="kpi-head">Reports loaded <span class="kpi-icon">▤</span></div><div class="kpi-value neutral" id="reports-value">—</div><div class="kpi-foot" id="reports-foot">Workbook scan status</div></article>
 </section>
+
+<section class="segment-section" aria-label="P&L by segment">
+  <div class="segment-heading">
+    <div>
+      <h2 class="segment-title">P&amp;L by segment</h2>
+      <div class="segment-subtitle">Estimated after charges · grouped from loaded reports</div>
+    </div>
+  </div>
+  <div class="segment-grid" id="segment-cards">
+    <article class="segment-card"><div class="segment-name">Equity</div><div class="segment-value neutral">—</div><div class="segment-meta">Calculating…</div></article>
+    <article class="segment-card"><div class="segment-name">F&amp;O</div><div class="segment-value neutral">—</div><div class="segment-meta">Calculating…</div></article>
+    <article class="segment-card"><div class="segment-name">Currency</div><div class="segment-value neutral">—</div><div class="segment-meta">Calculating…</div></article>
+    <article class="segment-card"><div class="segment-name">Commodity</div><div class="segment-value neutral">—</div><div class="segment-meta">Calculating…</div></article>
+  </div>
+</section>
+
 <div class="section-row" id="reports-section"><div><h2 class="section-title">Report library</h2><div class="section-help" id="table-subtitle">Excel reports are discovered dynamically from the repository.</div></div><div class="filters"><button class="btn primary" id="export">↓ &nbsp; Export summary</button><input class="control" id="search" type="search" placeholder="Search reports…" aria-label="Search reports"><select class="control" id="year-filter" aria-label="Filter by year"><option value="">All years</option></select><select class="control" id="status-filter" aria-label="Filter by analysis status"><option value="">All statuses</option><option value="ready">Ready</option><option value="review">Needs review</option></select></div></div>
 <div class="table-wrap"><table><thead><tr><th>Report</th><th>Worksheet</th><th>Trade rows</th><th class="num">Gross P&amp;L</th><th class="num">Charges</th><th class="num">Net P&amp;L</th><th>Analysis</th><th>Source</th></tr></thead><tbody id="reports-body"><tr><td colspan="8"><div class="empty"><b>Loading reports</b>Fetching workbook list from GitHub…</div></td></tr></tbody></table></div>
 
@@ -177,7 +204,36 @@ setMetric("gross-value",gross,"gross-foot",grossValues.length+" report(s) with d
 setMetric("charges-value",charges,"charges-foot",charges===null?"No charge columns detected":chargesAvail.length+" report(s) with identifiable charge columns");
 setMetric("net-value",net,"net-foot",netValues.length+" report(s) with detected net values");
 $("reports-value").textContent=reports.length;$("reports-value").className="kpi-value neutral";$("reports-foot").textContent=valid.length+" ready · "+(reports.length-valid.length)+" need review";
-renderChart();populateYears();renderTable();$("table-subtitle").textContent=reports.length+" report(s) detected · "+valid.length+" with recognizable P&L columns";
+renderSegmentCards();renderChart();populateYears();renderTable();$("table-subtitle").textContent=reports.length+" report(s) detected · "+valid.length+" with recognizable P&L columns";
+}
+
+function classifySegment(report){
+ const text=normalized([report.segment,report.worksheet,report.name].filter(Boolean).join(" "));
+ if(/\bcommodity\b|\bmcx\b/.test(text))return "Commodity";
+ if(/\bcurrency\b|\bcds\b/.test(text))return "Currency";
+ if(/\bf\s*o\b|\bfutures?\s+and\s+options\b|\bderivatives?\b/.test(text))return "F&O";
+ if(/\bequity\b/.test(text))return "Equity";
+ return null;
+}
+function renderSegmentCards(){
+ const names=["Equity","F&O","Currency","Commodity"];
+ const totals=Object.fromEntries(names.map(name=>[name,{sum:0,count:0}]));
+ for(const report of reports){
+  if(!report.ready||!Number.isFinite(report.net))continue;
+  const segment=classifySegment(report);
+  if(!segment||!totals[segment])continue;
+  totals[segment].sum+=report.net;
+  totals[segment].count++;
+ }
+ const root=$("segment-cards");
+ if(!root)return;
+ root.innerHTML=names.map(name=>{
+  const item=totals[name],hasData=item.count>0;
+  const value=hasData?fmt(item.sum):"—";
+  const tone=!hasData?"neutral":item.sum>0?"positive":item.sum<0?"negative":"neutral";
+  const detail=hasData?item.count+" report"+(item.count===1?"":"s")+" · report sum":"No matching reports";
+  return '<article class="segment-card"><div class="segment-name">'+name.replace("&","&amp;")+'</div><div class="segment-value '+tone+'">'+value+'</div><div class="segment-meta">'+detail+'</div></article>';
+ }).join("");
 }
 function setMetric(id,value,footId,footText){const el=$(id);el.textContent=value===null?"—":fmt(value);el.className="kpi-value "+(value===null?"neutral":value>0?"positive":value<0?"negative":"neutral");$(footId).textContent=footText;}
 function renderChart(){
