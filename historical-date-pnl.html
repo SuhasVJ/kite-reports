@@ -36,12 +36,12 @@ const title=s=>s.replace(/\.[^.]+$/,"");
 function loadXlsx(){return new Promise((resolve,reject)=>{if(window.XLSX)return resolve();let urls=["https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js","https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"],i=0;function next(){if(window.XLSX)return resolve();if(i>=urls.length)return reject(new Error("Excel parser failed to load. Check network/CDN access."));let s=document.createElement("script");s.src=urls[i++];s.onload=()=>window.XLSX?resolve():next();s.onerror=next;document.head.appendChild(s);}next();});}
 function col(headers,patterns){for(const p of patterns){const i=headers.findIndex(h=>p.test(norm(h)));if(i>=0)return i;}return -1;}
 function detect(headers){
- const pnl=col(headers,[/^(net )?p ?l$/,/^net profit loss$/,/^realised p ?l$/,/^realized p ?l$/,/^pnl$/,/^profit loss$/,/net p ?l/,/profit loss/]);
- const gross=col(headers,[/^gross p ?l$/,/^gross profit loss$/,/gross p ?l/]);
+ const pnl=col(headers,[/^(net )?p ?l$/,/^net profit loss$/,/^realised p ?l$/,/^realized p ?l$/,/^realised profit loss$/,/^realized profit loss$/,/^realised pnl$/,/^realized pnl$/,/^pnl$/,/^profit loss$/,/^net realised p ?l$/,/^net realized p ?l$/,/net p ?l/,/realised.*p ?l/,/realized.*p ?l/,/profit loss/]);
+ const gross=col(headers,[/^gross p ?l$/,/^gross profit loss$/,/gross p ?l/,/^realised profit$/,/^realized profit$/]);
  const total=col(headers,[/^total charges?$/,/^total charges taxes$/,/^charges$/,/^charges taxes$/]);
  const chargeCols=[];
  if(total>=0)chargeCols.push(total);else for(const p of [/^brokerage$/,/^(stt|securities transaction tax)$/,/^(exchange charges?|transaction charges?)$/,/^(gst|goods and services tax)$/,/^sebi charges?$/,/^stamp duty$/,/^ipft$/,/^(other charges?|clearing charges?)$/]){const i=headers.findIndex(h=>p.test(norm(h)));if(i>=0&&!chargeCols.includes(i))chargeCols.push(i);}
- const date=col(headers,[/^trade date$/,/^date$/,/^order date$/,/^exit date$/,/^timestamp$/,/^trade timestamp$/]);
+ const date=col(headers,[/^trade date$/,/^date$/,/^order date$/,/^exit date$/,/^timestamp$/,/^trade timestamp$/,/^trade date time$/,/^execution date$/,/^closed date$/,/^sell date$/,/^buy date$/]);
  const symbol=col(headers,[/^tradingsymbol$/,/^trading symbol$/,/^symbol$/,/^instrument$/,/^stock$/,/^instrument name$/]);
  const desc=col(headers,[/^trade type$/,/^transaction type$/,/^type$/,/^description$/,/^product$/,/^tradetype$/]);
  const segment=col(headers,[/^segment$/,/^exchange$/,/^market$/]);
@@ -62,8 +62,9 @@ async function scanFile(f){
  const wb=XLSX.read(await res.arrayBuffer(),{type:"array",cellDates:true}),rowsOut=[];
  for(const sheetName of wb.SheetNames){
   const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,raw:true,defval:null,blankrows:false});
-  for(let hr=0;hr<Math.min(rows.length,150);hr++){
+  for(let hr=0;hr<Math.min(rows.length,250);hr++){
    const headers=(rows[hr]||[]).map(v=>String(v??"").trim()),c=detect(headers);
+   // Support common broker report labels for realized/closed P&L and trade dates.
    if(c.date<0||(c.pnl<0&&c.gross<0))continue;
    let foundBody=false;
    for(let ri=hr+1;ri<rows.length;ri++){
@@ -96,7 +97,7 @@ async function loadReports(){
  $("status").textContent="Loading Excel parser and listing reports…";$("tbody").innerHTML='<tr><td colspan="10" class="empty">Loading reports…</td></tr>';
  try{await loadXlsx();const res=await fetch(API,{headers:{"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"}});if(!res.ok)throw new Error("GitHub API returned HTTP "+res.status);const files=(await res.json()).filter(f=>f.type==="file"&&/\.(xlsx|xls|csv)$/i.test(f.name));fileCount=files.length;allTrades=[];failures=[];let completed=0;
   for(let i=0;i<files.length;i+=3){const batch=files.slice(i,i+3);const results=await Promise.all(batch.map(async f=>{try{return await scanFile(f)}catch(e){failures.push(f.name+": "+e.message);return[]}}));for(const arr of results)allTrades.push(...arr);completed+=batch.length;$("status").textContent="Scanned "+completed+" / "+files.length+" report(s)…";}
-  $("status").textContent="Loaded "+files.length+" report(s), found "+allTrades.length+" trade row(s) with recognizable dates and P&L columns."+(failures.length?" "+failures.length+" file(s) could not be read.":"");render();
+  $("status").textContent="Loaded "+files.length+" report(s); detected "+allTrades.length+" dated P&L row(s) across all years."+(failures.length?" "+failures.length+" file(s) could not be read: "+failures.slice(0,3).join(" | "):"")+(allTrades.length===0?" No worksheet rows matched a recognized date + P&L header. This is a report-layout/header-detection issue, not the selected year filter.":"");render();
  }catch(e){$("status").textContent="Could not load reports: "+e.message;$("tbody").innerHTML='<tr><td colspan="10" class="empty">'+esc(e.message)+'</td></tr>';}
 }
 function exportCsv(){const pick=$("datePick").value,selectedYear=new Date(pick+"T12:00:00").getFullYear(),monthDay=pick.slice(5,10),range=$("yearsBack").value,minYear=range==="all"?-Infinity:selectedYear-Number(range),search=norm($("search").value),segment=$("segment").value;const rows=allTrades.filter(t=>t.date.slice(5,10)===monthDay&&t.year<selectedYear&&t.year>=minYear&&(!segment||t.segment===segment)&&(!search||norm(t.symbol+" "+t.description+" "+t.report+" "+t.sheet).includes(search)));const data=[["Date","Year","Segment","Symbol","Description","Gross/P&L INR","Charges INR","Net P&L INR","Report","Worksheet"],...rows.map(r=>[r.date,r.year,r.segment,r.symbol,r.description,r.gross,r.charges,r.net,r.report,r.sheet])];const csv="\ufeff"+data.map(row=>row.map(v=>{const s=String(v??"");return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));a.download="same-day-historical-pnl-"+pick+".csv";a.click();URL.revokeObjectURL(a.href);}
