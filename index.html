@@ -205,6 +205,14 @@ const gross=grossValues.length?grossValues.reduce((a,b)=>a+b,0):null,charges=cha
 setMetric("gross-value",gross,"gross-foot",grossValues.length+" report(s) with detected gross values");
 setMetric("charges-value",charges,"charges-foot",charges===null?"No charge columns detected":chargesAvail.length+" report(s) with identifiable charge columns");
 setMetric("net-value",net,"net-foot",netValues.length+" report(s) with detected net values");
+if(net!==null){
+ const snapshot={updatedAt:new Date().toISOString(),reportedNetPnl:net,lossBaseline:Math.max(0,-net),reportsLoaded:reports.length};
+ try{localStorage.setItem("kiteLatestPnlSnapshotV1",JSON.stringify(snapshot));}catch(e){}
+ const endpoint=localStorage.getItem("kiteSheetsEndpointV1")||"",token=localStorage.getItem("kiteSheetsTokenV1")||"";
+ if(endpoint&&token){
+  fetch(endpoint,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({...snapshot,token})}).catch(e=>console.warn("Google Sheets sync request failed",e));
+ }
+}
 $("reports-value").textContent=reports.length;$("reports-value").className="kpi-value neutral";$("reports-foot").textContent=valid.length+" ready · "+(reports.length-valid.length)+" need review";
 renderSegmentCards();renderChart();populateYears();renderTable();$("table-subtitle").textContent=reports.length+" report(s) detected · "+valid.length+" with recognizable P&L columns";
 }
