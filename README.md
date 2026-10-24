@@ -7,7 +7,6 @@ A no-build, static HTML5 + JavaScript dashboard for Zerodha Kite P&L workbooks s
 - Discovers `.xlsx`, `.xls` and `.csv` files from the public repository's `reports/` folder using the GitHub Contents API.
 - Parses Zerodha workbook summary rows such as **Charges**, **Realized P&L**, **Unrealized P&L**, and **Other Credit & Debit** rather than mistaking the **Realized P&L Pct.** column for rupee P&L.
 - Displays report coverage, report-level P&L and charges, date periods, a report comparison chart, filters, and CSV export.
-- Allows local workbooks to be imported for the current browser session. Local files are not uploaded.
 - Responsive desktop and mobile layout.
 
 ## Deploy on GitHub Pages
@@ -23,13 +22,13 @@ The `index.html` file is in the repository root, so there is no build step.
 
 1. Upload a new Kite Excel report to the existing `reports/` folder.
 2. Commit the file to `main`.
-3. Open or refresh the dashboard. It rediscovers report files at refresh time, so no hardcoded file list needs maintenance.
+3. Reload the dashboard in your browser. The report list is discovered at page load, so no hardcoded file list needs maintenance.
 
 The source reports must be publicly readable for a public GitHub Pages site to read them. Never commit API keys, access tokens, or other secrets.
 
 ## Run locally
 
-Open `index.html` in a browser with internet access. If the browser blocks network requests from a local file, run a static server in the repository folder:
+Open `index.html` in a browser with internet access. Reload the page to load newly committed reports. If the browser blocks network requests from a local file, run a static server in the repository folder:
 
 ```bash
 python -m http.server 8000
