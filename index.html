@@ -123,7 +123,7 @@ for(const sheetName of wb.SheetNames){
    }
   }
  }
- for(let r=0;r<Math.min(rows.length,30);r++){
+ for(let r=0;r<Math.min(rows.length,100);r++){
   const row=rows[r]||[],headers=row.map(v=>String(v??"").trim()),cols=detectColumns(headers);
   const body=rows.slice(r+1).filter(x=>x&&x.some(v=>v!==null&&v!==""));
   let numericPnl=0,nonzeroPnl=0;
