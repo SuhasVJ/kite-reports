@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101a2b">
+<title>Kite Reports · P&amp;L Observatory</title>
+<meta name="description" content="A browser-based dashboard for reviewing Zerodha Kite P&L Excel reports.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f4f6fa;--ink:#17243a;--muted:#7f8ba0;--line:#e5eaf1;--card:#fff;--nav:#101a2b;--green:#087f5b;--red:#d9485f;--gold:#ce9b45;--blue:#4e79d9;--shadow:0 10px 30px rgba(20,40,70,.055)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}button,input,select{font:inherit}button{cursor:pointer}
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}.sidebar{background:var(--nav);color:#f6f8fc;padding:27px 18px;display:flex;flex-direction:column;gap:25px}
+.brand{display:flex;align-items:center;gap:11px;padding:0 8px}.brand-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#d9b16a,#8e6b35);display:grid;place-items:center;color:#1c2636;font-size:20px;font-weight:800}.brand-name{font-family:Manrope,sans-serif;font-weight:800;font-size:15px;letter-spacing:.2px}.brand-sub{font-size:10px;letter-spacing:1.8px;color:#8e9cb2;margin-top:3px}
+.nav-label{font-size:10px;letter-spacing:1.7px;text-transform:uppercase;color:#8190a8;padding:0 12px}.nav-item{display:flex;align-items:center;gap:11px;padding:12px;border-radius:10px;color:#c1cada;font-size:13px;border:0;background:transparent;text-align:left;width:100%}.nav-item.active{background:#263348;color:white}.nav-icon{width:18px;text-align:center;font-size:16px}.side-note{margin-top:auto;border:1px solid #344258;background:#18253a;border-radius:13px;padding:14px;font-size:11px;line-height:1.6;color:#aab6c9}.side-note b{display:block;color:#f2d6a0;font-size:12px;margin-bottom:5px}
+main{min-width:0;padding:29px clamp(18px,3.2vw,48px) 40px}.topline{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:30px}.eyebrow{color:var(--muted);font-size:11px;letter-spacing:1.3px;text-transform:uppercase;margin-bottom:7px}.page-title{font:800 clamp(25px,3vw,34px)/1.15 Manrope,sans-serif;letter-spacing:-1.2px;margin:0}.page-sub{font-size:13px;color:var(--muted);margin-top:8px}.top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:white;border-radius:9px;padding:10px 13px;font-size:12px;font-weight:700;color:var(--ink);box-shadow:0 2px 5px #18294305}.btn.primary{background:#18283f;color:#fff;border-color:#18283f}.btn:hover{transform:translateY(-1px)}.file-hidden{display:none}
+.status{display:flex;gap:9px;align-items:center;font-size:11px;color:var(--muted);margin:-15px 0 22px}.dot{width:7px;height:7px;border-radius:50%;background:#12a878;display:inline-block}.status.error .dot{background:var(--red)}.status.loading .dot{background:var(--gold)}
+.grid-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:17px}.kpi{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);padding:19px;border-radius:15px;min-width:0}.kpi-head{font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:8px}.kpi-icon{width:27px;height:27px;background:#f2f5fa;border-radius:8px;display:grid;place-items:center;font-size:13px}.kpi-value{font:800 clamp(19px,2.3vw,27px)/1.2 Manrope,sans-serif;margin-top:15px;letter-spacing:-.8px;overflow-wrap:anywhere}.kpi-foot{font-size:11px;color:var(--muted);margin-top:8px}.positive{color:var(--green)!important}.negative{color:var(--red)!important}.neutral{color:var(--ink)!important}
+.columns{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.9fr);gap:16px;margin-bottom:17px}.panel{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:15px;padding:21px;min-width:0}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:17px}.panel-title{font:700 15px Manrope,sans-serif;margin:0}.panel-sub{font-size:11px;color:var(--muted);margin-top:5px}.tag{font-size:10px;color:#7b879a;background:#f2f5f9;border-radius:6px;padding:6px 8px;white-space:nowrap}
+.chart{width:100%;height:220px;display:block;overflow:visible}.chart text{font-family:"DM Sans",sans-serif;fill:#8a96a8;font-size:10px}.legend{display:flex;flex-wrap:wrap;gap:15px;font-size:11px;color:var(--muted);margin-top:9px}.legend span{display:flex;align-items:center;gap:6px}.swatch{width:7px;height:7px;border-radius:50%;display:inline-block}
+.split-list{display:flex;flex-direction:column;gap:17px}.split-row{display:grid;grid-template-columns:94px 1fr 88px;align-items:center;gap:10px;font-size:11px}.split-label{color:#68768c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.track{background:#eff2f7;border-radius:9px;height:8px;overflow:hidden}.bar{height:100%;border-radius:9px;background:#4e79d9;min-width:0}.split-value{text-align:right;font-family:"DM Mono",monospace;font-size:10px}
+.section-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:23px 0 13px}.section-title{font:800 19px Manrope,sans-serif;letter-spacing:-.4px;margin:0}.section-help{font-size:11px;color:var(--muted);margin-top:4px}.filters{display:flex;gap:8px;flex-wrap:wrap}.control{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:white;color:#536176;font-size:11px;outline:none;max-width:100%}.control:focus{border-color:#9eb4db}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:13px;background:white;box-shadow:var(--shadow)}table{border-collapse:collapse;width:100%;min-width:760px;font-size:12px}thead{background:#f8f9fc}th{font-size:10px;text-transform:uppercase;letter-spacing:.9px;font-weight:700;color:#8a96a8;text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);white-space:nowrap}td{padding:15px 16px;border-bottom:1px solid #eff2f6;white-space:nowrap}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:#fbfcff}.num{text-align:right;font-family:"DM Mono",monospace;font-size:11px}.report-name{font-weight:700;color:#25364e}.report-meta{color:#98a2b3;font-size:10px;margin-top:4px}.pill{font-size:10px;padding:5px 7px;border-radius:6px;background:#edf8f3;color:#188461}.pill.warn{background:#fff6e8;color:#9b6b22}.open-link{color:#3d69b5;text-decoration:none;font-weight:700;font-size:11px}.empty{padding:35px;text-align:center;color:var(--muted);font-size:12px}.empty b{display:block;color:var(--ink);font-size:14px;margin-bottom:7px}.footnote{font-size:10px;color:#9aa4b4;margin-top:15px;line-height:1.6}
+.toast{position:fixed;right:20px;bottom:20px;background:#18283f;color:white;padding:12px 16px;border-radius:10px;font-size:12px;box-shadow:0 10px 30px #0c172b30;display:none;max-width:min(420px,calc(100vw - 40px));z-index:5}.toast.show{display:block}.disclaimer{background:#fff9ed;border:1px solid #f4e4c4;border-radius:10px;padding:12px 14px;color:#7a653c;font-size:11px;line-height:1.6;margin-top:17px}
+@media(max-width:1100px){.shell{grid-template-columns:205px minmax(0,1fr)}.grid-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:1fr}.sidebar{padding:22px 12px}}
+@media(max-width:720px){.shell{display:block}.sidebar{display:none}main{padding:22px 14px 32px}.topline{align-items:flex-start;flex-direction:column;margin-bottom:24px}.top-actions{width:100%}.top-actions .btn{flex:1}.grid-kpi{gap:10px}.kpi{padding:14px}.kpi-value{font-size:20px}.panel{padding:16px}.split-row{grid-template-columns:78px 1fr 78px}.chart{height:195px}.section-row{align-items:flex-start}.filters{width:100%}.control{flex:1;min-width:120px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+<div class="brand"><div class="brand-mark">K</div><div><div class="brand-name">Kite Reports</div><div class="brand-sub">P&amp;L OBSERVATORY</div></div></div>
+<div><div class="nav-label">Workspace</div><button class="nav-item active" data-scroll="overview"><span class="nav-icon">◫</span>Overview</button><button class="nav-item" data-scroll="reports-section"><span class="nav-icon">▤</span>Report library</button><button class="nav-item" data-scroll="insights"><span class="nav-icon">⌁</span>Performance insights</button></div>
+<div><div class="nav-label">Data</div><button class="nav-item" id="nav-refresh"><span class="nav-icon">↻</span>Refresh reports</button><button class="nav-item" id="nav-upload"><span class="nav-icon">＋</span>Import local Excel</button></div>
+<div class="side-note"><b>Live from your repository</b>Reports are read from the public GitHub repository at refresh time. Add new workbooks to the reports folder and refresh to include them.</div>
+</aside>
+<main>
+<header class="topline" id="overview">
+<div><div class="eyebrow">Portfolio analytics / Zerodha Kite</div><h1 class="page-title">P&amp;L Observatory</h1><div class="page-sub">A consolidated view of your trading reports, charges and performance.</div></div>
+<div class="top-actions"><button class="btn" id="refresh">↻ &nbsp; Refresh data</button><button class="btn" id="upload">＋ &nbsp; Add Excel report</button><button class="btn primary" id="export">↓ &nbsp; Export summary</button><input class="file-hidden" type="file" id="file-input" accept=".xlsx,.xls,.csv" multiple></div>
+</header>
+<div class="status loading" id="status"><span class="dot"></span><span id="status-text">Connecting to GitHub reports…</span></div>
+<section class="grid-kpi" aria-label="Portfolio summary">
+<article class="kpi"><div class="kpi-head">Gross P&amp;L <span class="kpi-icon">↗</span></div><div class="kpi-value neutral" id="gross-value">—</div><div class="kpi-foot" id="gross-foot">Trading profit before detected costs</div></article>
+<article class="kpi"><div class="kpi-head">Charges &amp; taxes <span class="kpi-icon">₹</span></div><div class="kpi-value neutral" id="charges-value">—</div><div class="kpi-foot" id="charges-foot">From identifiable charge columns</div></article>
+<article class="kpi"><div class="kpi-head">Net P&amp;L <span class="kpi-icon">◈</span></div><div class="kpi-value neutral" id="net-value">—</div><div class="kpi-foot" id="net-foot">Gross less detected charges where available</div></article>
+<article class="kpi"><div class="kpi-head">Reports loaded <span class="kpi-icon">▤</span></div><div class="kpi-value neutral" id="reports-value">—</div><div class="kpi-foot" id="reports-foot">Workbook scan status</div></article>
+</section>
+<section class="columns" id="insights">
+<article class="panel"><div class="panel-head"><div><h2 class="panel-title">Net P&amp;L across reports</h2><div class="panel-sub">Each report is treated as a snapshot; overlapping periods may duplicate trades.</div></div><span class="tag" id="chart-tag">No data yet</span></div><svg class="chart" id="trend-chart" viewBox="0 0 700 220" role="img" aria-label="Net profit and loss chart"></svg><div class="legend"><span><i class="swatch" style="background:#4e79d9"></i>Net P&amp;L (detected)</span><span><i class="swatch" style="background:#d9e1ee"></i>Zero baseline</span></div></article>
+<article class="panel"><div class="panel-head"><div><h2 class="panel-title">Report coverage</h2><div class="panel-sub">Ready vs. reports needing column review</div></div><span class="tag" id="coverage-tag">—</span></div><div class="split-list" id="coverage-list"><div class="empty">Waiting for report scan…</div></div><div class="footnote">“Ready” means the workbook contains a recognizable P&amp;L column. Charges are shown only when identifiable; totals should be reviewed against Kite Console.</div></article>
+</section>
+<div class="section-row" id="reports-section"><div><h2 class="section-title">Report library</h2><div class="section-help" id="table-subtitle">Excel reports are discovered dynamically from the repository.</div></div><div class="filters"><input class="control" id="search" type="search" placeholder="Search reports…" aria-label="Search reports"><select class="control" id="year-filter" aria-label="Filter by year"><option value="">All years</option></select><select class="control" id="status-filter" aria-label="Filter by analysis status"><option value="">All statuses</option><option value="ready">Ready</option><option value="review">Needs review</option></select></div></div>
+<div class="table-wrap"><table><thead><tr><th>Report</th><th>Worksheet</th><th>Trade rows</th><th class="num">Gross P&amp;L</th><th class="num">Charges</th><th class="num">Net P&amp;L</th><th>Analysis</th><th>Source</th></tr></thead><tbody id="reports-body"><tr><td colspan="8"><div class="empty"><b>Loading reports</b>Fetching workbook list from GitHub…</div></td></tr></tbody></table></div>
+<div class="disclaimer"><b>Important:</b> These are report-level sums, not necessarily a deduplicated yearly result. Re-downloaded P&amp;L reports can cover overlapping dates, and different Kite exports may represent different report types. Use the date/period in each workbook and reconcile the final numbers with Kite Console before treating them as a financial statement.</div>
+<div class="footnote">Built with HTML5, CSS and JavaScript. Excel parsing runs in your browser. Your workbooks are fetched from the public <a href="https://github.com/SuhasVJ/kite-reports/tree/main/reports" target="_blank" rel="noreferrer">kite-reports repository</a>; locally imported files remain in this tab and are not uploaded.</div>
+</main></div><div class="toast" id="toast" role="status"></div>
+<script>
+(() => {
+"use strict";
+const OWNER="SuhasVJ",REPO="kite-reports",BRANCH="main";
+const API="https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/reports?ref="+BRANCH;
+const RAW="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/";
+let reports=[],lastRefresh=null;
+const $=id=>document.getElementById(id);
+const fmt=n=>Number.isFinite(n)?new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:2}).format(n):"—";
+const fmtNum=n=>Number.isFinite(n)?new Intl.NumberFormat("en-IN",{maximumFractionDigits:2}).format(n):"—";
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const titleFrom=name=>name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
+function setStatus(message,type="ok"){$("status-text").textContent=message;$("status").className="status "+(type==="ok"?"":type);}
+function toast(s){const el=$("toast");el.textContent=s;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),3500);}
+function normalized(s){return String(s??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();}
+function numeric(v){if(typeof v==="number"&&Number.isFinite(v))return v;if(v==null||v==="")return null;if(typeof v==="string"){let s=v.trim().replace(/[₹,\s]/g,"");if(/^\(.*\)$/.test(s))s="-"+s.slice(1,-1);if(s.endsWith("%"))return null;const n=Number(s);return s&&Number.isFinite(n)?n:null;}return null;}
+function findColumn(headers,patterns){for(const p of patterns){const i=headers.findIndex(h=>p.test(normalized(h)));if(i>=0)return i;}return -1;}
+function detectColumns(headers){
+const pnl=findColumn(headers,[/^(net )?p ?l$/,/^net profit loss$/,/^realised p ?l$/,/^realized p ?l$/,/^pnl$/,/^profit loss$/,/^realised profit loss$/,/^realized profit loss$/,/net p ?l/,/realised p ?l/,/realized p ?l/,/profit loss/]);
+const gross=findColumn(headers,[/^gross p ?l$/,/^gross profit loss$/, /gross p ?l/]);
+const chargePatterns=[{name:"Charges",re:/^(charges?|total charges?|brokerage)$/},{name:"STT",re:/^(stt|securities transaction tax)$/},{name:"Exchange charges",re:/^(exchange charges?|transaction charges?)$/},{name:"GST",re:/^(gst|goods and services tax)$/},{name:"SEBI charges",re:/^sebi charges?$/},{name:"Stamp duty",re:/^stamp duty$/},{name:"IPFT",re:/^ipft$/},{name:"Other charges",re:/^(other charges?|clearing charges?)$/}];
+const chargeCols=[];for(const p of chargePatterns){const i=headers.findIndex(h=>p.re.test(normalized(h)));if(i>=0&&!chargeCols.some(c=>c.i===i))chargeCols.push({i,name:p.name});}
+const date=findColumn(headers,[/^trade date$/,/^date$/,/^order date$/,/^exit date$/,/^timestamp$/]);
+const symbol=findColumn(headers,[/^tradingsymbol$/,/^trading symbol$/,/^symbol$/,/^instrument$/,/^stock$/]);
+return{pnl,gross,chargeCols,date,symbol};
+}
+function parseWorkbook(buf,name,source,url){
+if(!window.XLSX)throw new Error("Excel parser failed to load; check network access to the xlsx library.");
+const wb=XLSX.read(buf,{type:"array",cellDates:true});let best=null;
+for(const sheetName of wb.SheetNames){const ws=wb.Sheets[sheetName],rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});if(!rows.length)continue;
+for(let r=0;r<Math.min(rows.length,20);r++){const row=rows[r]||[],headers=row.map(v=>String(v??"").trim()),cols=detectColumns(headers),dataCount=rows.slice(r+1).filter(x=>x&&x.some(v=>v!==null&&v!=="")).length,score=(cols.pnl>=0?6:0)+(cols.gross>=0?4:0)+(cols.chargeCols.length?2:0)+(cols.symbol>=0?1:0)+(cols.date>=0?1:0)+Math.min(dataCount/100,1);if(!best||score>best.score)best={sheetName,rows,headerRow:r,headers,cols,score};}}
+if(!best)return{name,title:titleFrom(name),source,url,worksheet:"—",tradeRows:0,gross:null,charges:null,net:null,ready:false,note:"Empty workbook",dateRange:"",headers:[],rows:[]};
+const body=best.rows.slice(best.headerRow+1).filter(row=>row&&row.some(v=>v!==null&&v!=="")),cols=best.cols,headers=best.headers;
+let pnlTotal=0,grossTotal=0,chargeTotal=0;
+for(const row of body){const p=cols.pnl>=0?numeric(row[cols.pnl]):null,g=cols.gross>=0?numeric(row[cols.gross]):null;let c=0,hasCharge=false;for(const cc of cols.chargeCols){const x=numeric(row[cc.i]);if(x!==null){c+=x;hasCharge=true;}}if(p!==null)pnlTotal+=p;if(g!==null)grossTotal+=g;if(hasCharge)chargeTotal+=c;}
+const ready=cols.pnl>=0||cols.gross>=0;
+const gross=cols.gross>=0?grossTotal:(cols.pnl>=0&&cols.chargeCols.length?pnlTotal+chargeTotal:null);
+const net=cols.pnl>=0?pnlTotal:(cols.gross>=0&&cols.chargeCols.length?grossTotal-chargeTotal:null);
+const dates=body.map(r=>cols.date>=0?r[cols.date]:null).filter(Boolean).map(v=>v instanceof Date?v.toISOString().slice(0,10):String(v)).filter(s=>/^\d{4}/.test(s)).sort();
+return{name,title:titleFrom(name),source,url,worksheet:best.sheetName,tradeRows:body.length,gross,charges:cols.chargeCols.length?chargeTotal:null,net,ready,note:ready?(cols.chargeCols.length?"P&L and charges detected":"P&L detected; charges not found"):"No recognizable P&L header",dateRange:dates.length?dates[0]+(dates[dates.length-1]!==dates[0]?" – "+dates[dates.length-1]:""):"",headers,rows:[],chargeNames:cols.chargeCols.map(c=>c.name),pnlColumn:cols.pnl>=0?headers[cols.pnl]:cols.gross>=0?headers[cols.gross]:""};
+}
+async function loadGitHub(){
+setStatus("Refreshing workbook list from GitHub…","loading");
+try{
+const res=await fetch(API,{headers:{"Accept":"application/vnd.github+json"}});if(!res.ok)throw new Error(res.status===403?"GitHub API rate limit reached; wait and refresh.":"GitHub returned HTTP "+res.status);
+const files=await res.json(),xfiles=files.filter(f=>f.type==="file"&&/\.(xlsx|xls|csv)$/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+if(!xfiles.length)throw new Error("No .xlsx, .xls or .csv files found inside reports/.");
+const cached=new Map(reports.filter(r=>r.source==="Local upload").map(r=>[r.name,r])),loaded=[],failures=[];
+for(let i=0;i<xfiles.length;i+=4){const batch=xfiles.slice(i,i+4);const result=await Promise.all(batch.map(async f=>{try{const raw=await fetch(RAW+f.path.split("/").map(encodeURIComponent).join("/"));if(!raw.ok)throw new Error("download failed ("+raw.status+")");return parseWorkbook(await raw.arrayBuffer(),f.name,"GitHub",f.html_url);}catch(e){failures.push(f.name+": "+e.message);return{name:f.name,title:titleFrom(f.name),source:"GitHub",url:f.html_url,worksheet:"—",tradeRows:0,gross:null,charges:null,net:null,ready:false,note:"Could not parse: "+e.message,headers:[],rows:[]};}}));loaded.push(...result);}
+reports=[...loaded,...cached.values()];lastRefresh=new Date();renderAll();
+setStatus("Loaded "+loaded.length+" repository report(s)"+(cached.size?" + "+cached.size+" local file(s)":"")+" · updated "+lastRefresh.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),failures.length?"error":"ok");
+if(failures.length)toast(failures.length+" report(s) could not be read; check their status in the table.");
+}catch(e){setStatus(e.message+" You can still import Excel files manually.","error");if(!reports.length)$("reports-body").innerHTML='<tr><td colspan="8"><div class="empty"><b>Could not load repository reports</b>'+esc(e.message)+'<br><br>Import reports using “Add Excel report” or try again after checking network access.</div></td></tr>';}
+}
+function renderAll(){
+const valid=reports.filter(r=>r.ready),chargesAvail=valid.filter(r=>r.charges!==null),grossValues=valid.map(r=>r.gross).filter(Number.isFinite),netValues=valid.map(r=>r.net).filter(Number.isFinite);
+const gross=grossValues.length?grossValues.reduce((a,b)=>a+b,0):null,charges=chargesAvail.length?chargesAvail.reduce((s,r)=>s+r.charges,0):null,net=netValues.length?netValues.reduce((a,b)=>a+b,0):null;
+setMetric("gross-value",gross,"gross-foot",grossValues.length+" report(s) with detected gross values");
+setMetric("charges-value",charges,"charges-foot",charges===null?"No charge columns detected":chargesAvail.length+" report(s) with identifiable charge columns");
+setMetric("net-value",net,"net-foot",netValues.length+" report(s) with detected net values");
+$("reports-value").textContent=reports.length;$("reports-value").className="kpi-value neutral";$("reports-foot").textContent=valid.length+" ready · "+(reports.length-valid.length)+" need review";
+renderChart();renderCoverage();populateYears();renderTable();$("table-subtitle").textContent=reports.length+" report(s) detected · "+valid.length+" with recognizable P&L columns";
+}
+function setMetric(id,value,footId,footText){const el=$(id);el.textContent=value===null?"—":fmt(value);el.className="kpi-value "+(value===null?"neutral":value>0?"positive":value<0?"negative":"neutral");$(footId).textContent=footText;}
+function renderChart(){
+const svg=$("trend-chart"),data=reports.filter(r=>Number.isFinite(r.net)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+if(!data.length){svg.innerHTML='<text x="350" y="105" text-anchor="middle">No recognizable net P&amp;L values found yet</text>';$("chart-tag").textContent="No data";return;}
+const w=700,h=220,p={l:48,r:14,t:14,b:35},cw=w-p.l-p.r,ch=h-p.t-p.b,vs=data.map(d=>d.net),min=Math.min(0,...vs),max=Math.max(0,...vs),range=(max-min)||1,y=v=>p.t+(max-v)/range*ch,zero=y(0);let html="";
+for(let i=0;i<5;i++){const val=max-(max-min)*i/4,yy=y(val);html+='<line x1="'+p.l+'" y1="'+yy+'" x2="'+(w-p.r)+'" y2="'+yy+'" stroke="#edf0f5" stroke-dasharray="3 4"/><text x="'+(p.l-9)+'" y="'+(yy+3)+'" text-anchor="end">'+shortMoney(val)+'</text>';}
+html+='<line x1="'+p.l+'" y1="'+zero+'" x2="'+(w-p.r)+'" y2="'+zero+'" stroke="#cbd5e3"/>';const slot=cw/data.length,barW=Math.max(4,Math.min(22,slot*.56));
+data.forEach((d,i)=>{const x=p.l+i*slot+(slot-barW)/2,yy=y(d.net),top=Math.min(yy,zero),bh=Math.max(1,Math.abs(zero-yy));html+='<rect x="'+x+'" y="'+top+'" width="'+barW+'" height="'+bh+'" rx="3" fill="'+(d.net>=0?"#4e79d9":"#d9485f")+'" opacity=".9"><title>'+esc(d.name)+' · '+fmt(d.net)+'</title></rect>';if(data.length<=14||i%Math.ceil(data.length/14)===0||i===data.length-1)html+='<text x="'+(x+barW/2)+'" y="'+(h-12)+'" text-anchor="middle">'+esc(shortLabel(d.name))+'</text>';});
+svg.innerHTML=html;$("chart-tag").textContent=data.length+" report snapshots";
+}
+function shortMoney(v){const a=Math.abs(v);if(a>=10000000)return(v/10000000).toFixed(1)+"Cr";if(a>=100000)return(v/100000).toFixed(1)+"L";if(a>=1000)return(v/1000).toFixed(0)+"k";return v.toFixed(0);}
+function shortLabel(s){return s.replace(/^pnl[-_ ]?/i,"").replace(/\.xlsx?$/i,"").slice(-8);}
+function renderCoverage(){const total=reports.length,ready=reports.filter(r=>r.ready).length,review=total-ready,charges=reports.filter(r=>r.charges!==null).length;$("coverage-tag").textContent=total?Math.round(ready/total*100)+"% ready":"—";const items=[["P&L columns found",ready,total?ready/total:0,"#168767",ready+" / "+total],["Need manual review",review,total?review/total:0,"#d5a04f",review+" / "+total],["Charges detected",charges,total?charges/total:0,"#4e79d9",charges+" / "+total]];$("coverage-list").innerHTML=items.map(([label,val,pct,color,right])=>'<div class="split-row"><div class="split-label">'+label+'</div><div class="track"><div class="bar" style="width:'+(pct*100)+'%;background:'+color+'"></div></div><div class="split-value">'+right+'</div></div>').join("");}
+function populateYears(){const select=$("year-filter"),selected=select.value,years=[...new Set(reports.map(r=>(r.dateRange||"").match(/\b(20\d{2})\b/g)||[]).flat())].sort().reverse();select.innerHTML='<option value="">All years</option>'+years.map(y=>'<option value="'+esc(y)+'">'+esc(y)+'</option>').join("");if(years.includes(selected))select.value=selected;}
+function tone(n){return n===null?"":n>0?"positive":n<0?"negative":"";}
+function renderTable(){
+const query=normalized($("search").value),year=$("year-filter").value,status=$("status-filter").value;
+const rows=reports.filter(r=>{const text=normalized(r.name+" "+r.worksheet+" "+r.note+" "+r.dateRange);return(!query||text.includes(query))&&(!year||(r.dateRange||"").includes(year))&&(!status||(status==="ready"?r.ready:!r.ready));});
+if(!rows.length){$("reports-body").innerHTML='<tr><td colspan="8"><div class="empty"><b>No matching reports</b>Try changing the search or filters.</div></td></tr>';return;}
+$("reports-body").innerHTML=rows.map(r=>'<tr><td><div class="report-name">'+esc(r.title)+'</div><div class="report-meta">'+(r.dateRange?esc(r.dateRange):esc(r.name))+'</div></td><td>'+esc(r.worksheet||"—")+'</td><td class="num">'+fmtNum(r.tradeRows)+'</td><td class="num '+tone(r.gross)+'">'+(r.gross===null?"—":fmt(r.gross))+'</td><td class="num '+tone(r.charges)+'">'+(r.charges===null?"—":fmt(r.charges))+'</td><td class="num '+tone(r.net)+'">'+(r.net===null?"—":fmt(r.net))+'</td><td><span class="pill '+(r.ready?"":"warn")+'">'+(r.ready?"Ready":"Needs review")+'</span><div class="report-meta">'+esc(r.note)+'</div></td><td>'+(r.url?'<a class="open-link" href="'+esc(r.url)+'" target="_blank" rel="noreferrer">Open ↗</a>':"Local")+'</td></tr>').join("");
+}
+function exportSummary(){const rows=[["Report","Source","Worksheet","Date range","Rows","Gross P&L (INR)","Charges (INR)","Net P&L (INR)","Status","Notes"],...reports.map(r=>[r.name,r.source,r.worksheet,r.dateRange,r.tradeRows,r.gross,r.charges,r.net,r.ready?"Ready":"Needs review",r.note])];const csv=rows.map(row=>row.map(v=>{const s=String(v??"");return/[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(",")).join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kite-pnl-summary.csv";a.click();URL.revokeObjectURL(a.href);}
+async function importFiles(files){const local=[];for(const file of [...files]){try{local.push(parseWorkbook(await file.arrayBuffer(),file.name,"Local upload",null));}catch(e){local.push({name:file.name,title:titleFrom(file.name),source:"Local upload",worksheet:"—",tradeRows:0,gross:null,charges:null,net:null,ready:false,note:"Could not parse: "+e.message,headers:[],rows:[]});}}const existing=new Map(reports.map(r=>[r.source+"::"+r.name,r]));for(const r of local)existing.set(r.source+"::"+r.name,r);reports=[...existing.values()];renderAll();toast("Imported "+local.length+" file(s) locally. These files are not uploaded to GitHub.");}
+$("refresh").addEventListener("click",loadGitHub);$("nav-refresh").addEventListener("click",loadGitHub);$("upload").addEventListener("click",()=>$("file-input").click());$("nav-upload").addEventListener("click",()=>$("file-input").click());$("file-input").addEventListener("change",e=>{if(e.target.files.length)importFiles(e.target.files);e.target.value="";});$("export").addEventListener("click",exportSummary);
+["search","year-filter","status-filter"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",renderTable));
+document.querySelectorAll("[data-scroll]").forEach(el=>el.addEventListener("click",()=>{document.getElementById(el.dataset.scroll)?.scrollIntoView({behavior:"smooth"});document.querySelectorAll(".nav-item").forEach(x=>x.classList.toggle("active",x===el));}));
+loadGitHub();
+})();
+</script>
+</body></html>
