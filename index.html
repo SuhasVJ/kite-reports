@@ -39,18 +39,18 @@ main{min-width:0;padding:29px clamp(18px,3.2vw,48px) 40px}.topline{display:flex;
 </header>
 <div class="status loading" id="status"><span class="dot"></span><span id="status-text">Connecting to GitHub reports…</span></div>
 <section class="grid-kpi" aria-label="Portfolio summary">
-<article class="kpi"><div class="kpi-head">Gross P&amp;L · report sum <span class="kpi-icon">↗</span></div><div class="kpi-value neutral" id="gross-value">—</div><div class="kpi-foot" id="gross-foot">Trading profit before detected costs</div></article>
+<article class="kpi"><div class="kpi-head">P&amp;L before charges · report sum <span class="kpi-icon">↗</span></div><div class="kpi-value neutral" id="gross-value">—</div><div class="kpi-foot" id="gross-foot">Reported realized + unrealized P&amp;L</div></article>
 <article class="kpi"><div class="kpi-head">Charges &amp; taxes · report sum <span class="kpi-icon">₹</span></div><div class="kpi-value neutral" id="charges-value">—</div><div class="kpi-foot" id="charges-foot">From identifiable charge columns</div></article>
-<article class="kpi"><div class="kpi-head">Net P&amp;L · report sum <span class="kpi-icon">◈</span></div><div class="kpi-value neutral" id="net-value">—</div><div class="kpi-foot" id="net-foot">Gross less detected charges where available</div></article>
+<article class="kpi"><div class="kpi-head">Est. after charges · report sum <span class="kpi-icon">◈</span></div><div class="kpi-value neutral" id="net-value">—</div><div class="kpi-foot" id="net-foot">Estimate: P&amp;L − charges + signed other credits/debits</div></article>
 <article class="kpi"><div class="kpi-head">Reports loaded <span class="kpi-icon">▤</span></div><div class="kpi-value neutral" id="reports-value">—</div><div class="kpi-foot" id="reports-foot">Workbook scan status</div></article>
 </section>
 <section class="columns" id="insights">
-<article class="panel"><div class="panel-head"><div><h2 class="panel-title">Net P&amp;L by report snapshot</h2><div class="panel-sub">Each report is treated as a snapshot; overlapping periods may duplicate trades.</div></div><span class="tag" id="chart-tag">No data yet</span></div><svg class="chart" id="trend-chart" viewBox="0 0 700 220" role="img" aria-label="Net profit and loss chart"></svg><div class="legend"><span><i class="swatch" style="background:#4e79d9"></i>Net P&amp;L (detected)</span><span><i class="swatch" style="background:#d9e1ee"></i>Zero baseline</span></div></article>
+<article class="panel"><div class="panel-head"><div><h2 class="panel-title">Net P&amp;L by report snapshot</h2><div class="panel-sub">Each bar is a report snapshot; overlapping periods can duplicate activity.</div></div><span class="tag" id="chart-tag">No data yet</span></div><svg class="chart" id="trend-chart" viewBox="0 0 700 220" role="img" aria-label="Net profit and loss chart"></svg><div class="legend"><span><i class="swatch" style="background:#4e79d9"></i>Net P&amp;L (detected)</span><span><i class="swatch" style="background:#d9e1ee"></i>Zero baseline</span></div></article>
 <article class="panel"><div class="panel-head"><div><h2 class="panel-title">Report coverage</h2><div class="panel-sub">Ready vs. reports needing column review</div></div><span class="tag" id="coverage-tag">—</span></div><div class="split-list" id="coverage-list"><div class="empty">Waiting for report scan…</div></div><div class="footnote">“Ready” means the workbook contains a recognizable P&amp;L column. Charges are shown only when identifiable; totals should be reviewed against Kite Console.</div></article>
 </section>
 <div class="section-row" id="reports-section"><div><h2 class="section-title">Report library</h2><div class="section-help" id="table-subtitle">Excel reports are discovered dynamically from the repository.</div></div><div class="filters"><input class="control" id="search" type="search" placeholder="Search reports…" aria-label="Search reports"><select class="control" id="year-filter" aria-label="Filter by year"><option value="">All years</option></select><select class="control" id="status-filter" aria-label="Filter by analysis status"><option value="">All statuses</option><option value="ready">Ready</option><option value="review">Needs review</option></select></div></div>
 <div class="table-wrap"><table><thead><tr><th>Report</th><th>Worksheet</th><th>Trade rows</th><th class="num">Gross P&amp;L</th><th class="num">Charges</th><th class="num">Net P&amp;L</th><th>Analysis</th><th>Source</th></tr></thead><tbody id="reports-body"><tr><td colspan="8"><div class="empty"><b>Loading reports</b>Fetching workbook list from GitHub…</div></td></tr></tbody></table></div>
-<div class="disclaimer"><b>Important:</b> These are report-level sums, not necessarily a deduplicated yearly result. Re-downloaded P&amp;L reports can cover overlapping dates, and different Kite exports may represent different report types. Use the date/period in each workbook and reconcile the final numbers with Kite Console before treating them as a financial statement.</div>
+<div class="disclaimer"><b>Important:</b> These are report-level sums, not a deduplicated yearly result. Re-downloaded reports can cover overlapping dates. “P&amp;L before charges” uses the workbook’s reported realized plus unrealized P&amp;L; “estimated after charges” subtracts the workbook summary charges and adds the signed Other Credit &amp; Debit figure where present. Reconcile against Kite Console and an accountant before using for tax or financial reporting.</div>
 <div class="footnote">Built with HTML5, CSS and JavaScript. Excel parsing runs in your browser. Your workbooks are fetched from the public <a href="https://github.com/SuhasVJ/kite-reports/tree/main/reports" target="_blank" rel="noreferrer">kite-reports repository</a>; locally imported files remain in this tab and are not uploaded.</div>
 </main></div><div class="toast" id="toast" role="status"></div>
 <script>
@@ -94,18 +94,76 @@ next();
 }
 function parseWorkbook(buf,name,source,url){
 if(!window.XLSX)throw new Error("Excel parser failed to load; refresh the page or check CDN/network blocking.");
-const wb=XLSX.read(buf,{type:"array",cellDates:true});let best=null;
-for(const sheetName of wb.SheetNames){const ws=wb.Sheets[sheetName],rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});if(!rows.length)continue;
-for(let r=0;r<Math.min(rows.length,20);r++){const row=rows[r]||[],headers=row.map(v=>String(v??"").trim()),cols=detectColumns(headers),dataCount=rows.slice(r+1).filter(x=>x&&x.some(v=>v!==null&&v!=="")).length,score=(cols.pnl>=0?6:0)+(cols.gross>=0?4:0)+(cols.chargeCols.length?2:0)+(cols.symbol>=0?1:0)+(cols.date>=0?1:0)+Math.min(dataCount/100,1);if(!best||score>best.score)best={sheetName,rows,headerRow:r,headers,cols,score};}}
-if(!best)return{name,title:titleFrom(name),source,url,worksheet:"—",tradeRows:0,gross:null,charges:null,net:null,ready:false,note:"Empty workbook",dateRange:"",headers:[],rows:[]};
-const body=best.rows.slice(best.headerRow+1).filter(row=>row&&row.some(v=>v!==null&&v!=="")),cols=best.cols,headers=best.headers;
-let pnlTotal=0,grossTotal=0,chargeTotal=0;
-for(const row of body){const p=cols.pnl>=0?numeric(row[cols.pnl]):null,g=cols.gross>=0?numeric(row[cols.gross]):null;let c=0,hasCharge=false;for(const cc of cols.chargeCols){const x=numeric(row[cc.i]);if(x!==null){c+=x;hasCharge=true;}}if(p!==null)pnlTotal+=p;if(g!==null)grossTotal+=g;if(hasCharge)chargeTotal+=c;}
-const ready=cols.pnl>=0||cols.gross>=0;
-const gross=cols.gross>=0?grossTotal:(cols.pnl>=0&&cols.chargeCols.length?pnlTotal+chargeTotal:null);
-const net=cols.pnl>=0?pnlTotal:(cols.gross>=0&&cols.chargeCols.length?grossTotal-chargeTotal:null);
+const wb=XLSX.read(buf,{type:"array",cellDates:true});
+let best=null;
+const summary={realized:0,unrealized:0,charges:0,other:0};
+const found={realized:false,unrealized:false,charges:false,other:false};
+let periodStart="",periodEnd="",segment="";
+for(const sheetName of wb.SheetNames){
+ const ws=wb.Sheets[sheetName],rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});
+ if(!rows.length)continue;
+ for(let ri=0;ri<rows.length;ri++){
+  const row=rows[ri]||[];
+  const rowText=row.map(v=>String(v??"")).join(" ");
+  const periodMatch=rowText.match(/\bfrom\s+(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})/i);
+  if(periodMatch){periodStart=periodMatch[1];periodEnd=periodMatch[2];}
+  const segmentMatch=rowText.match(/P\s*&\s*L\s+Statement\s+for\s+(.+?)\s+from\s+\d{4}-\d{2}-\d{2}/i);
+  if(segmentMatch)segment=segmentMatch[1].trim();
+  for(let ci=0;ci<row.length;ci++){
+   const label=normalized(row[ci]);
+   let key=null;
+   if(label==="charges"||label==="total charges")key="charges";
+   else if(label==="realized p l"||label==="realised p l"||label==="realized pnl"||label==="realised pnl")key="realized";
+   else if(label==="unrealized p l"||label==="unrealised p l"||label==="unrealized pnl"||label==="unrealised pnl")key="unrealized";
+   else if(label==="other credit debit"||label==="other credits debits"||label==="other debit credit"||label==="other debits credits")key="other";
+   if(key){
+    let value=null;
+    for(let j=ci+1;j<row.length;j++){value=numeric(row[j]);if(value!==null)break;}
+    if(value!==null){summary[key]+=value;found[key]=true;}
+   }
+  }
+ }
+ for(let r=0;r<Math.min(rows.length,30);r++){
+  const row=rows[r]||[],headers=row.map(v=>String(v??"").trim()),cols=detectColumns(headers);
+  const body=rows.slice(r+1).filter(x=>x&&x.some(v=>v!==null&&v!==""));
+  let numericPnl=0,nonzeroPnl=0;
+  if(cols.pnl>=0||cols.gross>=0){
+   const ix=cols.pnl>=0?cols.pnl:cols.gross;
+   for(const d of body){const v=numeric(d[ix]);if(v!==null){numericPnl++;if(v!==0)nonzeroPnl++;}}
+  }
+  const score=(cols.pnl>=0?10:0)+(cols.gross>=0?6:0)+(numericPnl?Math.min(30,numericPnl):0)+(nonzeroPnl?Math.min(20,nonzeroPnl*2):0)+(cols.chargeCols.length?2:0)+(cols.symbol>=0?2:0)+(cols.date>=0?2:0)+Math.min(body.length/100,1);
+  if(!best||score>best.score)best={sheetName,rows,headerRow:r,headers,cols,score,body,numericPnl,nonzeroPnl};
+ }
+}
+const hasSummary=found.realized||found.unrealized;
+if(hasSummary){
+ const realized=found.realized?summary.realized:0;
+ const unrealized=found.unrealized?summary.unrealized:0;
+ const pAndL=realized+unrealized;
+ const charges=found.charges?summary.charges:null;
+ const other=found.other?summary.other:0;
+ const estimatedNet=pAndL-(charges===null?0:charges)+other;
+ const reportPeriod=periodStart?(periodStart+(periodEnd&&periodEnd!==periodStart?" – "+periodEnd:"")):"";
+ const note="Summary rows parsed"+(found.realized?" · realized P&L":"")+(found.unrealized?" · unrealized P&L":"")+(found.charges?" · charges":"")+(found.other?" · other credits/debits":"")+(charges===null?" · charges not found":"");
+ return{name,title:titleFrom(name),source,url,worksheet:best?best.sheetName:(wb.SheetNames[0]||"—"),segment:segment||"",tradeRows:best&&best.body?best.body.length:0,gross:pAndL,charges,net:estimatedNet,realizedPnl:found.realized?realized:null,unrealizedPnl:found.unrealized?unrealized:null,otherCreditsDebits:found.other?summary.other:null,ready:true,note,dateRange:reportPeriod,headers:best?best.headers:[],rows:[],summaryMode:true};
+}
+if(!best)return{name,title:titleFrom(name),source,url,worksheet:"—",tradeRows:0,gross:null,charges:null,net:null,ready:false,note:"Empty workbook or no recognizable P&L summary",dateRange:"",headers:[],rows:[]};
+const body=best.body||[],cols=best.cols,headers=best.headers;
+let pnlTotal=0,grossTotal=0,chargeTotal=0,pnlCount=0,grossCount=0;
+for(const row of body){
+ const p=cols.pnl>=0?numeric(row[cols.pnl]):null,g=cols.gross>=0?numeric(row[cols.gross]):null;
+ let c=0,hasCharge=false;
+ for(const cc of cols.chargeCols){const x=numeric(row[cc.i]);if(x!==null){c+=x;hasCharge=true;}}
+ if(p!==null){pnlTotal+=p;pnlCount++;}
+ if(g!==null){grossTotal+=g;grossCount++;}
+ if(hasCharge)chargeTotal+=c;
+}
+const ready=(cols.pnl>=0||cols.gross>=0)&&((cols.pnl>=0?pnlCount:grossCount)>0);
+const gross=cols.gross>=0&&grossCount?grossTotal:(cols.pnl>=0&&pnlCount?pnlTotal:null);
+const charges=cols.chargeCols.length?chargeTotal:null;
+const net=cols.pnl>=0&&pnlCount?pnlTotal:(cols.gross>=0&&grossCount&&charges!==null?grossTotal-charges:null);
 const dates=body.map(r=>cols.date>=0?r[cols.date]:null).filter(Boolean).map(v=>v instanceof Date?v.toISOString().slice(0,10):String(v)).filter(s=>/^\d{4}/.test(s)).sort();
-return{name,title:titleFrom(name),source,url,worksheet:best.sheetName,tradeRows:body.length,gross,charges:cols.chargeCols.length?chargeTotal:null,net,ready,note:ready?(cols.chargeCols.length?"P&L and charges detected":"P&L detected; charges not found"):"No recognizable P&L header",dateRange:dates.length?dates[0]+(dates[dates.length-1]!==dates[0]?" – "+dates[dates.length-1]:""):"",headers,rows:[],chargeNames:cols.chargeCols.map(c=>c.name),pnlColumn:cols.pnl>=0?headers[cols.pnl]:cols.gross>=0?headers[cols.gross]:""};
+return{name,title:titleFrom(name),source,url,worksheet:best.sheetName,tradeRows:body.length,gross,charges,net,ready,note:ready?(pnlCount||grossCount?"P&L column values detected": "P&L heading found but numeric values missing"):"No numeric values found under a recognizable P&L column",dateRange:periodStart?(periodStart+(periodEnd&&periodEnd!==periodStart?" – "+periodEnd:"")):(dates.length?dates[0]+(dates[dates.length-1]!==dates[0]?" – "+dates[dates.length-1]:""):""),headers,rows:[],summaryMode:false};
 }
 async function loadGitHub(){
 setStatus("Loading Excel parser and refreshing GitHub report list…","loading");
