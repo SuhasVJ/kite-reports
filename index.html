@@ -11,6 +11,7 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}button,input,select{font:inherit}button{cursor:pointer}
 .shell{display:block;min-height:100vh}main{min-width:0;padding:29px clamp(18px,3.2vw,48px) 40px}.topline{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:30px}.eyebrow{color:var(--muted);font-size:11px;letter-spacing:1.3px;text-transform:uppercase;margin-bottom:7px}.page-title{font:800 clamp(25px,3vw,34px)/1.15 Manrope,sans-serif;letter-spacing:-1.2px;margin:0}.page-sub{font-size:13px;color:var(--muted);margin-top:8px}.top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;flex-shrink:0}.btn{border:1px solid var(--line);background:white;border-radius:9px;padding:10px 13px;font-size:12px;font-weight:700;color:var(--ink);box-shadow:0 2px 5px #18294305}.btn.primary{background:#18283f;color:#fff;border-color:#18283f}.btn:hover{transform:translateY(-1px)}
 .status{display:flex;gap:9px;align-items:center;font-size:11px;color:var(--muted);margin:-15px 0 22px}.dot{width:7px;height:7px;border-radius:50%;background:#12a878;display:inline-block}.status.error .dot{background:var(--red)}.status.loading .dot{background:var(--gold)}
+.targets-link-row{display:flex;justify-content:flex-end;margin:0 0 12px}.targets-link{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:12px;font-weight:700;text-decoration:none;box-shadow:var(--shadow)}.targets-link:hover{border-color:#9eb8e6}
 .grid-kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:17px}
 .segment-section{margin:22px 0 25px}
 .segment-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px}
@@ -35,6 +36,7 @@
 <div class="shell">
 
 <main>
+<div class="targets-link-row"><a class="targets-link" href="./targets.html">↗ &nbsp; Recovery targets</a></div>
 <section class="grid-kpi" aria-label="Portfolio summary">
 <article class="kpi"><div class="kpi-head">P&amp;L before charges · report sum <span class="kpi-icon">↗</span></div><div class="kpi-value neutral" id="gross-value">—</div><div class="kpi-foot" id="gross-foot">Reported realized + unrealized P&amp;L</div></article>
 <article class="kpi"><div class="kpi-head">Charges &amp; taxes · report sum <span class="kpi-icon">₹</span></div><div class="kpi-value neutral" id="charges-value">—</div><div class="kpi-foot" id="charges-foot">From identifiable charge columns</div></article>
